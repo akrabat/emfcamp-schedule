@@ -698,6 +698,7 @@ a { color: var(--accent); }
   border-top: 1px solid var(--border);
 }
 .site-footer p { margin: 0; }
+.site-footer p + p { margin-top: 4px; }
 
 /* ---------- Mobile filters drawer ---------- */
 /* The Filters button sits in the results bar (next to Refresh / Sync) on mobile;
