@@ -1,0 +1,780 @@
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --text: #1b1f27;
+  --muted: #5c6472;
+  --border: #dfe3ea;
+  --accent: #7b3ff2;
+  --accent-text: #ffffff;
+  --shadow: 0 1px 2px rgba(20, 24, 33, .06), 0 4px 16px rgba(20, 24, 33, .06);
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  /* Accent-tinted surfaces shared by the saved-filter pills, the mobile Filters
+     button, and the on/active states of small pill controls, so those stay
+     visually identical. Built from --accent + --surface/--border, so they
+     re-resolve automatically per theme. */
+  --accent-fill: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  --accent-fill-hover: color-mix(in srgb, var(--accent) 24%, var(--surface));
+  --accent-fill-on: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  --accent-edge: color-mix(in srgb, var(--accent) 45%, var(--border));
+
+  /* Type accent colours */
+  --t-talk: #2f6fed;
+  --t-workshop: #0e9f6e;
+  --t-familyworkshop: #d97706;
+  --t-performance: #db2777;
+  --t-music: #8b5cf6;
+  --t-djset: #e11d48;
+  --t-meetup: #0891b2;
+  --t-film: #6b7280;
+}
+
+html[data-theme="dark"] {
+  --bg: #0f1218;
+  --surface: #181c24;
+  --surface-2: #1f2530;
+  --text: #e8ebf1;
+  --muted: #9aa4b5;
+  --border: #2a313d;
+  --accent: #a377ff;
+  --accent-text: #12151b;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .35);
+
+  --t-talk: #6ea0ff;
+  --t-workshop: #35d69b;
+  --t-familyworkshop: #f6ad55;
+  --t-performance: #f472b6;
+  --t-music: #b79bff;
+  --t-djset: #fb7185;
+  --t-meetup: #38bdf8;
+  --t-film: #9ca3af;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"] {
+    --bg: #0f1218;
+    --surface: #181c24;
+    --surface-2: #1f2530;
+    --text: #e8ebf1;
+    --muted: #9aa4b5;
+    --border: #2a313d;
+    --accent: #a377ff;
+    --accent-text: #12151b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .35);
+    --t-talk: #6ea0ff;
+    --t-workshop: #35d69b;
+    --t-familyworkshop: #f6ad55;
+    --t-performance: #f472b6;
+    --t-music: #b79bff;
+    --t-djset: #fb7185;
+    --t-meetup: #38bdf8;
+    --t-film: #9ca3af;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); }
+
+/* ---------- Header ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -.01em;
+}
+.bolt { color: var(--accent); }
+.tagline {
+  margin: 2px 0 0;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.05rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* ---------- Layout ---------- */
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ---------- Sidebar (filters + sync panels) ---------- */
+/* The two sidebar cards stack and stay in view while the schedule scrolls; the
+   sidebar itself is the sticky, internally-scrolling container. */
+.sidebar {
+  position: sticky;
+  top: 84px;
+  max-height: calc(100vh - 104px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* Shared card treatment for the sidebar panels. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Filters ---------- */
+.filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.filters-head h2 { margin: 0; font-size: 1rem; }
+.filters-head-actions { display: flex; align-items: center; gap: 10px; }
+/* The in-panel Done button only exists in the mobile drawer. */
+.filters-close { display: none; padding: 6px 16px; }
+.text-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: .85rem;
+  padding: 4px;
+}
+.text-btn:hover { text-decoration: underline; }
+
+/* ---------- Saved filters (chip bar on the results page) ---------- */
+.saved-bar { margin-bottom: 16px; }
+.saved-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* Each saved filter is one rounded pill: name (apply) + rename + delete.
+   Accent-tinted so the quick-apply chips read as clearly interactive and
+   stand out more than the neutral results-bar buttons. */
+.saved-item {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-fill);
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.saved-item:hover { background: var(--accent-fill-hover); }
+.saved-apply {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: .9rem;
+  padding: 8px 14px;
+  cursor: pointer;
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.saved-apply:hover { color: var(--accent); }
+/* Results-page chips: accent name so they pop; the pane's manage list stays neutral. */
+.saved-item .saved-apply { color: var(--accent); font-weight: 600; }
+/* The preset matching the current filters reads as selected: filled accent pill. */
+.saved-item:has(.saved-apply.active) { background: var(--accent); border-color: var(--accent); }
+.saved-item:has(.saved-apply.active):hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); }
+.saved-item .saved-apply.active,
+.saved-item .saved-apply.active:hover { color: var(--accent-text); }
+.save-filter,
+.show-all { padding: 4px 0; }
+
+/* Quick favourites-only toggle beneath "Show everything". A pill that
+   shows its on/off state so it reads as a switch, not a link. */
+.favs-toggle-btn {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 12px;
+  font-size: .85rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.favs-toggle-btn:hover { border-color: var(--accent-edge); }
+.favs-toggle-btn.on {
+  background: var(--accent-fill-on);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Manage saved filters inside the filter pane (rename / delete). */
+.saved-manage {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.saved-manage-item { display: flex; align-items: center; gap: 4px; }
+.saved-manage-item .saved-apply {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+.saved-manage-item .saved-apply:hover { background: var(--surface-2); }
+/* Pane list keeps neutral styling, but the active preset gets an accent tint. */
+.saved-manage-item .saved-apply.active {
+  background: var(--accent-fill-on);
+  color: var(--accent);
+  font-weight: 600;
+}
+.saved-rename,
+.saved-del {
+  flex: none;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .95rem;
+  line-height: 1;
+  padding: 6px;
+  border-radius: 6px;
+}
+.saved-rename:hover { color: var(--accent); background: var(--surface-2); }
+.saved-del:hover { color: var(--t-djset); background: var(--surface-2); }
+
+.field { margin-bottom: 14px; }
+.field-label {
+  display: block;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+#search {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: .95rem;
+}
+#search:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  cursor: pointer;
+  font-size: .92rem;
+}
+.toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+.facet { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 4px; }
+.facet summary {
+  cursor: pointer;
+  padding: 8px 0;
+  font-weight: 600;
+  font-size: .92rem;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.facet summary::-webkit-details-marker { display: none; }
+.facet summary::before {
+  content: "▸";
+  color: var(--muted);
+  transition: transform .15s;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.facet[open] summary::before { transform: rotate(90deg); }
+.facet-count { color: var(--muted); font-weight: 400; font-size: .82rem; }
+.facet-body { padding: 4px 0 10px; }
+
+.facet-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0 4px;
+}
+.facet-shortcuts button {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: .78rem;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.facet-shortcuts button:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .9rem;
+}
+.check:hover { background: var(--surface-2); }
+.check input { width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
+.check .name { flex: 1; }
+.check .num { color: var(--muted); font-size: .8rem; }
+.check .dot {
+  width: 9px; height: 9px; border-radius: 50%; flex: none;
+}
+
+/* ---------- Sync / import favourites ---------- */
+/* Its own collapsible card in the sidebar; the summary is the panel header. */
+.sync-panel { padding: 0; }
+.sync-panel > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.sync-panel > summary::-webkit-details-marker { display: none; }
+.sync-panel > summary h2 { margin: 0; font-size: 1rem; }
+.sync-panel > summary::after {
+  content: "▸";
+  margin-left: auto;
+  color: var(--muted);
+  font-size: .8rem;
+  transition: transform .15s;
+}
+.sync-panel[open] > summary::after { transform: rotate(90deg); }
+.sync-panel[open] > summary { border-bottom: 1px solid var(--border); }
+.sync-panel .import-body { padding: 12px 16px 16px; }
+/* Drawer header (title + Done) only exists in the mobile drawer. */
+.sync-drawer-head { display: none; }
+.import-body { padding-top: 4px; }
+.import-help { font-size: .82rem; color: var(--muted); margin: 0 0 8px; }
+.import-help strong { color: var(--text); }
+.import-help code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .95em;
+}
+#token-input,
+#import-text {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .78rem;
+  line-height: 1.4;
+}
+#import-text { resize: vertical; }
+#token-input:focus,
+#import-text:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.import-actions {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.import-actions .btn { flex: 1; }
+.import-actions .text-btn { flex: none; white-space: nowrap; }
+.import-paste {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.import-paste summary {
+  cursor: pointer;
+  font-size: .85rem;
+  color: var(--accent);
+  padding: 2px 0;
+}
+.sync-info {
+  margin: 0 0 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--t-workshop);
+}
+.import-status { margin: 8px 0 0; font-size: .82rem; color: var(--t-workshop); }
+.import-status.error { color: var(--t-djset); }
+.import-status .undo-btn { font-size: .82rem; padding: 0 2px; }
+
+/* ---------- Results ---------- */
+.results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.count { margin: 0; font-size: .95rem; color: var(--muted); }
+.count strong { color: var(--text); }
+/* "Now" jump button: a clock icon in the header next to the theme toggle;
+   uses .icon-btn so it matches the theme toggle's size. The clock outline is
+   drawn in the accent colour so it reads as the "jump to the current time"
+   action, tinting on hover. */
+#now-btn {
+  color: var(--accent);
+  border-color: var(--accent-edge);
+}
+.results-bar-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+/* The sync button and its settings (link) button read as one segmented control;
+   inline-flex removes the inter-button whitespace so they can sit flush. */
+.sync-group { display: inline-flex; }
+/* Join the two into one segmented control, but only when the sync button is
+   actually shown (a token is stored); otherwise the link button stands alone and
+   keeps its full rounding. */
+.sync-group #top-sync-btn:not([hidden]) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.sync-group #top-sync-btn:not([hidden]) + #sync-open {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+.btn {
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: .88rem;
+  font-weight: 600;
+}
+.btn.ghost {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+  font-weight: 500;
+}
+/* The mobile Filters button sits between the two: an accent-tinted fill rather
+   than the solid accent of a plain .btn, so it reads as the primary action
+   without dominating, yet still stands out more than the neutral ghost buttons. */
+.btn.filters-toggle {
+  background: var(--accent-fill);
+  border-color: var(--accent-edge);
+  color: var(--accent);
+}
+/* Hover styles only where a real pointer exists. On touch, iOS keeps :hover
+   "stuck" on a tapped button until you tap elsewhere; that would leave a
+   just-tapped ghost button on --surface-2 (lighter than --surface in dark
+   mode) and mismatch its neighbours, and would tint the success flash grey. */
+@media (hover: hover) {
+  .icon-btn:hover { background: var(--surface-2); }
+  .btn:hover { filter: brightness(1.05); }
+  .btn.ghost:hover { background: var(--surface-2); }
+  .btn.filters-toggle:hover { background: var(--accent-fill-hover); }
+  #now-btn:hover { background: var(--accent-fill); border-color: var(--accent); }
+}
+/* .copied wins on hover too, so a desktop hover during the success flash keeps
+   it green rather than falling back to .btn.ghost:hover. */
+.btn.copied,
+.btn.copied:hover { background: var(--t-workshop); border-color: var(--t-workshop); color: #fff; }
+.btn.sync-failed,
+.btn.sync-failed:hover { background: var(--t-djset); border-color: var(--t-djset); color: #fff; }
+
+/* Busy action buttons keep their label and spin the leading icon, so the results
+   bar never reflows to a longer word like "Refreshing…". The button is a flex row
+   so the enlarged icon stays centred against the label. */
+/* :not([hidden]) so this display doesn't defeat the hidden attribute: an author
+   display: inline-flex would beat the UA [hidden] { display: none }, which would
+   leave #top-sync-btn visible even with no token stored. */
+.btn:has(.spin-ico):not([hidden]) { display: inline-flex; align-items: center; gap: 6px; }
+/* Bigger glyph, lifted to optically centre it (its ink sits low in the em box),
+   with negative block margins so the taller icon doesn't grow the button. */
+.spin-ico {
+  display: inline-block;
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-block: -0.25em;
+  position: relative;
+  top: -0.08em;
+}
+.btn.busy .spin-ico { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .btn.busy .spin-ico { animation: none; }
+}
+
+.status {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  font-size: .9rem;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.status.error { border-color: var(--t-djset); background: color-mix(in srgb, var(--t-djset) 12%, var(--surface)); }
+
+/* ---------- Schedule ---------- */
+.day-group { margin-bottom: 28px; }
+.day-head {
+  position: sticky;
+  top: 72px;
+  z-index: 5;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 8px 2px;
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.day-head .day-n { color: var(--muted); font-weight: 400; font-size: .85rem; }
+
+.card {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--type-color, var(--border));
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  /* Clear the sticky site header + day heading when "Now" scrolls a card up. */
+  scroll-margin-top: 112px;
+}
+.card-time {
+  text-align: right;
+  padding-top: 2px;
+}
+.card-time .start { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.card-time .end { color: var(--muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
+.card-time .dur { color: var(--muted); font-size: .72rem; margin-top: 3px; }
+
+.card-body { min-width: 0; }
+.card-top { display: flex; align-items: flex-start; gap: 8px; }
+.card-title {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.3;
+  flex: 1;
+}
+.card-title a { color: var(--text); text-decoration: none; }
+.card-title a:hover { color: var(--accent); text-decoration: underline; }
+
+.fav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--border);
+  padding: 0 2px;
+  flex: none;
+}
+.fav-btn:hover { color: var(--t-familyworkshop); }
+.fav-btn.on { color: var(--t-familyworkshop); }
+
+/* Read-only star while favourites are synced from EMF: still shows the state
+   (.on stays coloured), but not interactive. */
+.fav-btn.locked { cursor: default; }
+.fav-btn.locked:hover { color: var(--border); }
+.fav-btn.locked.on:hover { color: var(--t-familyworkshop); }
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 6px 0;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--type-color, var(--muted));
+  text-transform: capitalize;
+}
+.speaker { color: var(--text); font-weight: 500; }
+.venue-link { color: var(--muted); text-decoration: none; }
+.venue-link:hover { color: var(--accent); text-decoration: underline; }
+
+.card-desc {
+  margin: 4px 0 0;
+  font-size: .9rem;
+  color: var(--text);
+}
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag {
+  font-size: .72rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.tag.warn { color: var(--t-familyworkshop); border-color: color-mix(in srgb, var(--t-familyworkshop) 40%, var(--border)); }
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty h3 { margin: 0 0 6px; color: var(--text); }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  color: var(--muted);
+  font-size: .82rem;
+  border-top: 1px solid var(--border);
+}
+.site-footer p { margin: 0; }
+
+/* ---------- Mobile filters drawer ---------- */
+/* The Filters button sits in the results bar (next to Refresh / Sync) on mobile;
+   on desktop the sidebar replaces it, so it is hidden. */
+.filters-toggle { display: none; }
+/* The sync-favourites opener (link icon) shows in both layouts; only its action
+   differs (see app.js): on mobile it opens the sync panel as a drawer, on desktop
+   it scrolls the sidebar sync panel into view and opens it. */
+.sync-open { display: inline-block; }
+
+@media (max-width: 820px) {
+  .layout { grid-template-columns: 1fr; }
+  /* The filters (a fixed drawer) and the sync panel flow directly into the
+     single column; the sidebar box does nothing here. */
+  .sidebar { display: contents; }
+  .filters {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    border-radius: 0;
+    max-height: none;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform .2s ease;
+  }
+  .filters.open { transform: none; }
+  .filters-toggle { display: inline-block; }
+
+  /* The sync panel becomes a drawer, opened by the results-bar link button and
+     closed by its in-panel Done. Its native summary is hidden here; the drawer
+     header below replaces it. */
+  .sync-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    border-radius: 0;
+    max-height: none;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform .2s ease;
+  }
+  .sync-panel.open { transform: none; }
+  .sync-panel > summary { display: none; }
+  .sync-panel .import-body { padding: 0 16px 16px; }
+  .sync-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--surface);
+    padding: 12px 0 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sync-drawer-head h2 { margin: 0; font-size: 1rem; }
+
+  .day-head { top: 64px; }
+
+  /* Always-visible close control at the top of the drawer; the drawer covers the
+     Filters button while open, so closing relies on this, not the opener. */
+  .filters-close { display: inline-block; }
+  .filters-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--surface);
+    padding: 4px 0 10px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 480px) {
+  .card { grid-template-columns: 1fr; gap: 4px; }
+  .card-time { text-align: left; display: flex; gap: 8px; align-items: baseline; }
+  .card-time .dur { display: none; }
+}

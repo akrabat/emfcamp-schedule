@@ -1,0 +1,15 @@
+{
+  "name": "EMF 2026 Schedule",
+  "short_name": "EMF 2026",
+  "description": "A filterable, shareable schedule for Electromagnetic Field 2026.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#7b3ff2",
+  "background_color": "#0f1218",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon.svg", "type": "image/svg+xml", "sizes": "any" }
+  ]
+}

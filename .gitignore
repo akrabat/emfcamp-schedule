@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editors
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Settings
+.env
+
+# The global gitignore (~/.config/git/ignore) has a macOS "/Icon?" rule for
+# Finder Icon\r files; on case-insensitive filesystems it also matches this
+# project's icons/ directory. Re-include it so the icon assets are tracked.
+!/icons/
