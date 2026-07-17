@@ -314,6 +314,19 @@ a { color: var(--accent); }
 }
 #search:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
 
+/* External-link browser choice (only shown in the iOS home-screen app) */
+.link-setting { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; }
+.link-setting select {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: .95rem;
+}
+.link-setting select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+
 .toggle {
   display: flex;
   align-items: center;

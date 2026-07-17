@@ -13,6 +13,7 @@ const SYNCED_KEY = `emf-synced-${YEAR}`;
 const SAVED_KEY = `emf-saved-${YEAR}`;
 const LAST_KEY = `emf-last-${YEAR}`;
 const THEME_KEY = 'emf-theme';
+const BROWSER_KEY = 'emf-browser';
 
 // Same-origin relay to emfcamp.org's favourites feed (see nginx.conf). The feed
 // itself has no CORS headers, so the browser cannot call it directly.
@@ -27,6 +28,18 @@ const TYPE_LABELS = {
   djset: 'DJ set',
   meetup: 'Meetup',
   film: 'Film',
+};
+
+// Browsers the iOS home-screen app can hand external links to, via each
+// browser's own URL scheme. Safari, Chrome and Edge take a prefix swap on the
+// https URL; Firefox takes the target as a percent-encoded query parameter.
+// The link just fails silently if the chosen browser isn't installed, so this
+// stays a user choice (there is no way to detect the default browser).
+const BROWSERS = {
+  safari:  { label: 'Safari',  link: (url) => 'x-safari-https://' + url.slice('https://'.length) },
+  firefox: { label: 'Firefox', link: (url) => 'firefox://open-url?url=' + encodeURIComponent(url) },
+  chrome:  { label: 'Chrome',  link: (url) => 'googlechromes://' + url.slice('https://'.length) },
+  edge:    { label: 'Edge',    link: (url) => 'microsoft-edge-https://' + url.slice('https://'.length) },
 };
 
 const WEEKDAY_CODE = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -95,6 +108,8 @@ const el = {
   syncPanel: $('#sync-panel'),
   syncOpen: $('#sync-open'),
   syncClose: $('#sync-close'),
+  browserSetting: $('#browser-setting'),
+  browserSelect: $('#browser-select'),
 };
 
 /* ---------- Boot ---------- */
@@ -791,6 +806,27 @@ function bindStaticEvents() {
     buildFilterPanel();
     render();
   });
+
+  // When installed to the iOS home screen (navigator.standalone), make
+  // external links open directly in a real browser: Safari unless the user
+  // picked another in the filter panel's setting, which only appears in this
+  // mode (in a normal browser tab links already open where the user expects).
+  if (navigator.standalone === true) {
+    el.browserSelect.innerHTML = Object.entries(BROWSERS)
+      .map(([key, b]) => `<option value="${key}">${b.label}</option>`).join('');
+    el.browserSelect.value = loadBrowser();
+    el.browserSelect.addEventListener('change', () => saveBrowser(el.browserSelect.value));
+    el.browserSetting.hidden = false;
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href]');
+      if (!a) return;
+      const url = new URL(a.href);
+      if (url.protocol !== 'https:' || url.origin === location.origin) return;
+      e.preventDefault();
+      location.href = BROWSERS[loadBrowser()].link(a.href);
+    });
+  }
 }
 
 function resetFilters() {
@@ -1140,6 +1176,19 @@ function loadSaved() {
 }
 function saveSaved() {
   try { localStorage.setItem(SAVED_KEY, JSON.stringify(savedFilters)); } catch { /* quota */ }
+}
+// The external-link browser choice; anything unset or unrecognised means Safari.
+function loadBrowser() {
+  try {
+    const v = localStorage.getItem(BROWSER_KEY);
+    return BROWSERS[v] ? v : 'safari';
+  } catch { return 'safari'; }
+}
+function saveBrowser(v) {
+  try {
+    if (v && v !== 'safari') localStorage.setItem(BROWSER_KEY, v);
+    else localStorage.removeItem(BROWSER_KEY); // Safari is the default; store nothing
+  } catch { /* quota / disabled storage */ }
 }
 function loadLastFilter() {
   try { return localStorage.getItem(LAST_KEY) || ''; } catch { return ''; }
