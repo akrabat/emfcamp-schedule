@@ -60,11 +60,15 @@ let savedFilters = loadSaved(); // user's named filter presets: [{ id, name, que
 
 // Built-in filters, always present and not deletable. They depend on "today",
 // so they are computed at apply time (see applyDefaultFilter) rather than stored.
-// type is one event type or an array of them; venue: 'stages' = venues starting
-// with "Stage"; 'all' = no venue restriction.
+// type is one event type or an array of them (omit for no type restriction);
+// venue: 'stages' = venues starting with "Stage"; 'all' (or omitted) = no venue
+// restriction; any other string (or array) = those exact venue name(s).
 const DEFAULT_FILTERS = [
-  { id: 'def-stage-talks', name: 'Stage talks today', type: 'talk', venue: 'stages' },
   { id: 'def-talks', name: 'All talks today', type: 'talk', venue: 'all' },
+  { id: 'def-stage-talks', name: 'Stage talks today', type: 'talk', venue: 'stages' },
+  { id: 'def-stage-a', name: 'Stage A today', venue: 'Stage A' },
+  { id: 'def-stage-b', name: 'Stage B today', venue: 'Stage B' },
+  { id: 'def-stage-c', name: 'Stage C today', venue: 'Stage C' },
   { id: 'def-films', name: 'Films today', type: 'film', venue: 'all' },
   { id: 'def-music', name: 'Music today', type: ['music', 'djset'], venue: 'all' },
 ];
@@ -554,13 +558,22 @@ function defaultFilterState(def) {
   return {
     q: '',
     days: new Set([WEEKDAY_CODE[weekday(localDateStr(0))]]),
-    types: new Set([].concat(def.type)), // def.type may be one type or an array
-    venues: def.venue === 'stages'
-      ? new Set(VENUES.filter((v) => /^stage/i.test(v.name)).map((v) => v.name))
-      : new Set(), // 'all' = no venue restriction
+    // def.type may be one type, an array, or absent (no type restriction).
+    types: def.type == null ? new Set() : new Set([].concat(def.type)),
+    venues: defaultVenues(def),
     family: false,
     favsOnly: false,
   };
+}
+
+// The venue set a built-in default restricts to: 'stages' = every venue named
+// "Stage…"; 'all' or absent = no restriction; any other string (or array) = the
+// named venue(s), kept only if present in this year's schedule.
+function defaultVenues(def) {
+  if (def.venue === 'stages') return new Set(VENUES.filter((v) => /^stage/i.test(v.name)).map((v) => v.name));
+  if (def.venue == null || def.venue === 'all') return new Set();
+  const known = new Set(VENUES.map((v) => v.name));
+  return new Set([].concat(def.venue).filter((name) => known.has(name)));
 }
 
 function applyDefaultFilter(def) {
