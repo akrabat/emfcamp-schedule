@@ -44,6 +44,9 @@ const BROWSERS = {
 
 const WEEKDAY_CODE = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const WEEKDAY_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+// A special, dynamic day value: always matches whatever the current local day
+// is, rather than a fixed weekday. Distinct from every WEEKDAY_CODE.
+const TODAY_CODE = 'today';
 
 /* ---------- State ---------- */
 let RAW = [];        // raw events from the API
@@ -227,9 +230,12 @@ function venueRank(name) {
 
 /* ---------- Filter panel ---------- */
 function buildFilterPanel() {
-  el.days.innerHTML = DAYS.map((d) =>
-    checkRow('day', d.code, `${d.label}`, d.count, filters.days.has(d.code))
-  ).join('');
+  const todayCount = DAYS.find((d) => d.date === localDateStr(0))?.count || 0;
+  el.days.innerHTML =
+    checkRow('day', TODAY_CODE, 'Today', todayCount, filters.days.has(TODAY_CODE)) +
+    DAYS.map((d) =>
+      checkRow('day', d.code, `${d.label}`, d.count, filters.days.has(d.code))
+    ).join('');
 
   el.types.innerHTML = TYPES.map((t) =>
     checkRow('type', t.type, t.label, t.count, filters.types.has(t.type), `var(--t-${t.type})`)
@@ -279,8 +285,7 @@ function setFacetCount(facet, n) {
 
 // Facet shortcuts: set a facet's selection to exactly the matching values (or
 // all / none), unchecking everything else, then reflect it in the checkboxes.
-// Day also supports Today / Tomorrow (no-op if that date isn't a schedule day);
-// venue supports Stages (name starts with "Stage") and Workshops (name contains
+// Venue supports Stages (name starts with "Stage") and Workshops (name contains
 // "Workshop").
 function applyFacetPreset(facet, preset) {
   const groupEl = { day: el.days, type: el.types, venue: el.venues }[facet];
@@ -289,13 +294,6 @@ function applyFacetPreset(facet, preset) {
   let values;
   switch (preset) {
     case 'none': values = []; break;
-    case 'today':
-    case 'tomorrow': {
-      const day = DAYS.find((d) => d.date === localDateStr(preset === 'today' ? 0 : 1));
-      if (!day) return; // today/tomorrow isn't one of the event days: do nothing
-      values = [day.code];
-      break;
-    }
     case 'stages': values = VENUES.filter((v) => /^stage/i.test(v.name)).map((v) => v.name); break;
     case 'workshops': values = VENUES.filter((v) => /workshop/i.test(v.name)).map((v) => v.name); break;
     default: return;
@@ -313,7 +311,12 @@ function applyFacetPreset(facet, preset) {
 /* ---------- Filtering ---------- */
 function matches(it) {
   const ev = it.ev;
-  if (filters.days.size && !filters.days.has(it.code)) return false;
+  if (filters.days.size) {
+    // 'today' is a dynamic value matching the current local date, so the
+    // selection means the same thing whenever the link is opened.
+    const isToday = filters.days.has(TODAY_CODE) && it.date === localDateStr(0);
+    if (!isToday && !filters.days.has(it.code)) return false;
+  }
   if (filters.types.size && !filters.types.has(ev.type)) return false;
   if (filters.venues.size && !filters.venues.has(it.venue)) return false;
   if (filters.family && !ev.family_friendly) return false;
@@ -694,6 +697,7 @@ function capitalize(w) { return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; 
 function pluralize(w) { return /s$/i.test(w) ? w : w + 's'; }
 
 function dayCodeLabel(code) {
+  if (code === TODAY_CODE) return 'Today';
   const i = WEEKDAY_CODE.indexOf(code);
   return i >= 0 ? WEEKDAY_LONG[i].slice(0, 3) : code;
 }
