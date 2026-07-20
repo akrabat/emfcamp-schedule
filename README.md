@@ -131,6 +131,8 @@ locally just as they do in production; `make down` stops and removes it.
 
 ## Notes
 
+- When changing the app shell, bump `VERSION` in `serviceworker.js` so the
+  service worker refreshes its offline cache.
 - To target a different year, change `YEAR` at the top of `app.js`.
 - Times are shown exactly as provided by the API (UK local time).
 - Not affiliated with or endorsed by Electromagnetic Field.

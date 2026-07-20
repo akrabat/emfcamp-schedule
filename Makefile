@@ -11,7 +11,7 @@ HOST ?= your-server
 DIR ?= /opt/emfcamp-schedule
 HOST_IS_BAREMETAL ?= 0
 
-STATIC_FILES = index.html styles.css app.js icons
+STATIC_FILES = index.html styles.css app.js serviceworker.js icons
 FILES = $(STATIC_FILES) nginx.conf compose.yaml
 
 list:
