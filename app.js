@@ -68,7 +68,6 @@ let savedFilters = loadSaved(); // user's named filter presets: [{ id, name, que
 // restriction; any other string (or array) = those exact venue name(s).
 const DEFAULT_FILTERS = [
   { id: 'def-talks', name: 'All talks today', type: 'talk', venue: 'all' },
-  { id: 'def-stage-talks', name: 'Stage talks today', type: 'talk', venue: 'stages' },
   { id: 'def-stage-a', name: 'Stage A today', venue: 'Stage A' },
   { id: 'def-stage-b', name: 'Stage B today', venue: 'Stage B' },
   { id: 'def-stage-c', name: 'Stage C today', venue: 'Stage C' },
